@@ -23,6 +23,7 @@ export interface PathConfig {
 export interface CellarConfig {
   s3: any
   paths: PathConfig
+  defaultBucket?: string
 }
 
 export class Cellar {
@@ -38,6 +39,10 @@ export class Cellar {
 
   integrate(app) {
     app.use(multer({dest: this.config.paths.temp}))
+  }
+
+  getConfig(): CellarConfig {
+    return this.config
   }
 
   private sendToS3(localPath: string, remotePath: string, bucket: string) {

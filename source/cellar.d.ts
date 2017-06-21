@@ -12,6 +12,7 @@ export interface PathConfig {
 export interface CellarConfig {
     s3: any;
     paths: PathConfig;
+    defaultBucket?: string;
 }
 export declare class Cellar {
     private fileCollection;
@@ -19,6 +20,7 @@ export declare class Cellar {
     private config;
     constructor(fileCollection: Collection<File>, config: CellarConfig);
     integrate(app: any): void;
+    getConfig(): CellarConfig;
     private sendToS3(localPath, remotePath, bucket);
     upload(name: string, fields: any, bucket: string, request: Request, req: any): Promise<{
         files: any[];

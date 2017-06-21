@@ -16,6 +16,9 @@ var Cellar = (function () {
     Cellar.prototype.integrate = function (app) {
         app.use(multer({ dest: this.config.paths.temp }));
     };
+    Cellar.prototype.getConfig = function () {
+        return this.config;
+    };
     Cellar.prototype.sendToS3 = function (localPath, remotePath, bucket) {
         var _this = this;
         var params = {
