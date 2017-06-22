@@ -10,11 +10,12 @@ function getFiles(files) {
 var Cellar = (function () {
     function Cellar(fileCollection, config) {
         this.fileCollection = fileCollection;
-        this.s3Client = s3.createClient(config);
+        this.s3Client = s3.createClient(config.s3);
         this.config = config;
     }
-    Cellar.prototype.integrate = function (app) {
-        app.use(multer({ dest: this.config.paths.temp }));
+    Cellar.prototype.singleFile = function (name) {
+        if (name === void 0) { name = 'file'; }
+        return multer({ dest: this.config.paths.temp }).single(name);
     };
     Cellar.prototype.getConfig = function () {
         return this.config;
@@ -38,32 +39,33 @@ var Cellar = (function () {
             });
         });
     };
-    Cellar.prototype.upload = function (name, fields, bucket, request, req) {
+    Cellar.prototype.uploadFile = function (name, fields, bucket, file) {
         var _this = this;
-        var files = getFiles(req.files);
-        var result = [];
-        var promises = files.map(function (file) {
-            var path = require('path');
-            var ext = path.extname(file.originalname) || '';
-            var filename = name + ext;
-            var entity = Object.assign({
-                filename: filename,
-                path: file.path,
-                extension: ext.substring(1),
-                size: file.size,
-            }, fields);
-            return _this.fileCollection.create(entity)
-                .then(function (record) {
-                result.push(record);
-                return _this.sendToS3(file.path, filename, bucket);
-            });
+        var path = require('path');
+        var ext = path.extname(file.originalname) || '';
+        var filename = name + ext;
+        var entity = Object.assign({
+            filename: filename,
+            path: file.path,
+            extension: ext.substring(1),
+            size: file.size,
+        }, fields);
+        return this.fileCollection.create(entity)
+            .then(function (record) {
+            return _this.sendToS3(file.path, filename, bucket)
+                .then(function () { return record; })
+                .catch(function (error) { return _this.fileCollection.remove(record)
+                .then(function () {
+                throw error;
+            }); });
         });
-        return Promise.all(promises)
-            .then(function () {
-            return {
-                files: result
-            };
-        });
+    };
+    Cellar.prototype.upload = function (name, fields, bucket, request) {
+        var req = request.original;
+        return this.uploadFile(name, fields, bucket, req.file)
+            .then(function (record) { return ({
+            file: record
+        }); });
     };
     return Cellar;
 }());

@@ -19,10 +19,11 @@ export declare class Cellar {
     private s3Client;
     private config;
     constructor(fileCollection: Collection<File>, config: CellarConfig);
-    integrate(app: any): void;
+    singleFile(name?: string): any;
     getConfig(): CellarConfig;
     private sendToS3(localPath, remotePath, bucket);
-    upload(name: string, fields: any, bucket: string, request: Request, req: any): Promise<{
-        files: any[];
+    private uploadFile(name, fields, bucket, file);
+    upload(name: string, fields: any, bucket: string, request: Request): Promise<{
+        file: never;
     }>;
 }

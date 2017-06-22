@@ -33,12 +33,12 @@ export class Cellar {
 
   constructor(fileCollection: Collection<File>, config: CellarConfig) {
     this.fileCollection = fileCollection
-    this.s3Client = s3.createClient(config)
+    this.s3Client = s3.createClient(config.s3)
     this.config = config
   }
 
-  integrate(app) {
-    app.use(multer({dest: this.config.paths.temp}))
+  singleFile(name = 'file') {
+    return multer({dest: this.config.paths.temp}).single(name)
   }
 
   getConfig(): CellarConfig {
@@ -65,34 +65,35 @@ export class Cellar {
     })
   }
 
-  upload(name: string, fields, bucket: string, request: Request, req) {
-    const files = getFiles(req.files)
+  private uploadFile(name: string, fields, bucket: string, file) {
+    const path = require('path')
+    const ext = path.extname(file.originalname) || ''
+    const filename = name + ext
 
-    const result = []
-    const promises = files.map((file) => {
-      const path = require('path')
-      const ext = path.extname(file.originalname) || ''
-      const filename = name + ext
+    const entity = Object.assign({
+      filename: filename,
+      path: file.path,
+      extension: ext.substring(1),
+      size: file.size,
+    }, fields)
 
-      const entity = Object.assign({
-        filename: filename,
-        path: file.path,
-        extension: ext.substring(1),
-        size: file.size,
-      }, fields)
-
-      return this.fileCollection.create(entity)
-        .then(record => {
-          result.push(record)
-          return this.sendToS3(file.path, filename, bucket)
-        })
-    })
-
-    return Promise.all(promises)
-      .then(() => {
-        return {
-          files: result
-        }
+    return this.fileCollection.create(entity)
+      .then(record => {
+        return this.sendToS3(file.path, filename, bucket)
+          .then(() => record)
+          .catch(error => this.fileCollection.remove(record)
+            .then(() => {
+              throw error
+            }))
       })
+
+  }
+
+  upload(name: string, fields, bucket: string, request: Request) {
+    const req = request.original
+    return this.uploadFile(name, fields, bucket, req.file)
+      .then(record => ({
+        file: record
+      }))
   }
 }
