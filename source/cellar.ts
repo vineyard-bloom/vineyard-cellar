@@ -24,6 +24,7 @@ export interface CellarConfig {
   s3: any
   paths: PathConfig
   defaultBucket?: string
+  useMock: boolean
 }
 
 export class Cellar {
@@ -65,6 +66,19 @@ export class Cellar {
     })
   }
 
+  createFile(name: string, fields, file) {
+      const path = require('path')
+      const ext = path.extname(file.originalname) || ''
+      const filename = name + ext
+
+      return Object.assign({
+        filename: filename,
+        path: file.path,
+        extension: ext.substring(1),
+        size: file.size,
+      }, fields)
+  }
+
   private uploadFile(name: string, fields, bucket: string, file) {
     const path = require('path')
     const ext = path.extname(file.originalname) || ''
@@ -76,6 +90,8 @@ export class Cellar {
       extension: ext.substring(1),
       size: file.size,
     }, fields)
+
+    // const entity = this.createFile(name, fields, file)
 
     return this.fileCollection.create(entity)
       .then(record => {

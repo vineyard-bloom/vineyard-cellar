@@ -39,6 +39,17 @@ var Cellar = (function () {
             });
         });
     };
+    Cellar.prototype.createFile = function (name, fields, file) {
+        var path = require('path');
+        var ext = path.extname(file.originalname) || '';
+        var filename = name + ext;
+        return Object.assign({
+            filename: filename,
+            path: file.path,
+            extension: ext.substring(1),
+            size: file.size,
+        }, fields);
+    };
     Cellar.prototype.uploadFile = function (name, fields, bucket, file) {
         var _this = this;
         var path = require('path');
@@ -50,6 +61,7 @@ var Cellar = (function () {
             extension: ext.substring(1),
             size: file.size,
         }, fields);
+        // const entity = this.createFile(name, fields, file)
         return this.fileCollection.create(entity)
             .then(function (record) {
             return _this.sendToS3(file.path, filename, bucket)
