@@ -1,6 +1,6 @@
 {
   "name": "vineyard-cellar",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Library for uploading, downloading and storing files",
   "main": "source/index.js",
   "types": "source/index.d.ts",
