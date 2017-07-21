@@ -107,6 +107,11 @@ export class Cellar {
 
   upload(name: string, fields, bucket: string, request: Request) {
     const req = request.original
+    if (!req.file) {
+      console.error('upload-req-error', req)
+      throw new Error("Upload request is missing file.")
+    }
+
     return this.uploadFile(name, fields, bucket, req.file)
       .then(record => ({
         file: record
