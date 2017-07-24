@@ -14,8 +14,8 @@
     "s3": "^4.4.0"
   },
   "peerDependencies": {
-    "vineyard-ground": "0.2.x",
-    "vineyard-lawn": "0.5.x"
+    "vineyard-ground": "vineyard-bloom/vineyard-ground",
+    "vineyard-lawn": "vineyard-bloom/vineyard-lawn"
   },
   "devDependencies": {
     "@types/es6-promise": "0.0.32",
