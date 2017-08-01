@@ -71,7 +71,6 @@ export class Cellar {
       size: file.size,
     }, fields)
 
-
     return this.fileCollection.create(entity)
       .then(record => {
         return this.client.send(file.path, filename)
@@ -80,16 +79,16 @@ export class Cellar {
             .then(() => {
               throw error
             }))
-      })
-      
-
+      })     
   }
 
   upload(name: string, fields, request: Request) {
     const req = request.original
+    if (!req.file) {
+      console.error('upload-req-error', req)
+      throw new Error("Upload request is missing file.")
+    }
+    
     return this.uploadFile(name, fields, req.file)
-      .then(record => ({
-        file: record
-      }))
   }
 }
