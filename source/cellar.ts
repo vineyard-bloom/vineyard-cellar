@@ -1,7 +1,7 @@
 import {Request, BadRequest} from 'vineyard-lawn'
 import {Collection} from "vineyard-ground"
+import {CellarClient} from "./cellar-client";
 const multer = require('multer')
-const s3 = require('s3')
 
 export interface File {
   filename: string
@@ -20,22 +20,22 @@ export interface PathConfig {
   temp: string
 }
 
+
+
 export interface CellarConfig {
-  s3: any
   paths: PathConfig
-  defaultBucket?: string
   useMock: boolean
 }
 
 export class Cellar {
   private fileCollection: Collection<File>
-  private s3Client
+  private client
   private config: CellarConfig
 
-  constructor(fileCollection: Collection<File>, config: CellarConfig) {
+  constructor(fileCollection: Collection<File>, config: CellarConfig, client: CellarClient) {
     this.fileCollection = fileCollection
-    this.s3Client = s3.createClient(config.s3)
     this.config = config
+    this.client = client
   }
 
   singleFile(name = 'file') {
@@ -44,26 +44,6 @@ export class Cellar {
 
   getConfig(): CellarConfig {
     return this.config
-  }
-
-  private sendToS3(localPath: string, remotePath: string, bucket: string) {
-    const params = {
-      localFile: localPath,
-
-      s3Params: {
-        Bucket: bucket,
-        Key: remotePath,
-      },
-    }
-    return new Promise((resolve, reject) => {
-      const uploader = this.s3Client.uploadFile(params)
-      uploader.on('error', function (error) {
-        reject(error)
-      })
-      uploader.on('end', function () {
-        resolve()
-      })
-    })
   }
 
   createFile(name: string, fields, file) {
@@ -79,7 +59,7 @@ export class Cellar {
       }, fields)
   }
 
-  private uploadFile(name: string, fields, bucket: string, file) {
+  private uploadFile(name: string, fields, file) {
     const path = require('path')
     const ext = path.extname(file.originalname) || ''
     const filename = name + ext
@@ -91,30 +71,24 @@ export class Cellar {
       size: file.size,
     }, fields)
 
-    // const entity = this.createFile(name, fields, file)
-
     return this.fileCollection.create(entity)
       .then(record => {
-        return this.sendToS3(file.path, filename, bucket)
+        return this.client.send(file.path, filename)
           .then(() => record)
           .catch(error => this.fileCollection.remove(record)
             .then(() => {
               throw error
             }))
-      })
-
+      })     
   }
 
-  upload(name: string, fields, bucket: string, request: Request) {
+  upload(name: string, fields, request: Request) {
     const req = request.original
     if (!req.file) {
       console.error('upload-req-error', req)
       throw new Error("Upload request is missing file.")
     }
-
-    return this.uploadFile(name, fields, bucket, req.file)
-      .then(record => ({
-        file: record
-      }))
+    
+    return this.uploadFile(name, fields, req.file)
   }
 }
