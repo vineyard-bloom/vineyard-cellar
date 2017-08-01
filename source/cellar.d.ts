@@ -1,5 +1,6 @@
 import { Request } from 'vineyard-lawn';
 import { Collection } from "vineyard-ground";
+import { CellarClient } from "./cellar-client";
 export interface File {
     filename: string;
     path: string;
@@ -10,22 +11,17 @@ export interface PathConfig {
     temp: string;
 }
 export interface CellarConfig {
-    s3: any;
     paths: PathConfig;
-    defaultBucket?: string;
     useMock: boolean;
 }
 export declare class Cellar {
     private fileCollection;
-    private s3Client;
+    private client;
     private config;
-    constructor(fileCollection: Collection<File>, config: CellarConfig);
+    constructor(fileCollection: Collection<File>, config: CellarConfig, client: CellarClient);
     singleFile(name?: string): any;
     getConfig(): CellarConfig;
-    private sendToS3(localPath, remotePath, bucket);
     createFile(name: string, fields: any, file: any): any;
-    private uploadFile(name, fields, bucket, file);
-    upload(name: string, fields: any, bucket: string, request: Request): Promise<{
-        file: never;
-    }>;
+    private uploadFile(name, fields, file);
+    upload(name: string, fields: any, request: Request): Promise<any>;
 }
