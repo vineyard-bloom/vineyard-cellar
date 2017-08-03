@@ -7,10 +7,10 @@ function getFiles(files) {
         : [files];
 }
 var Cellar = (function () {
-    function Cellar(fileCollection, config, client) {
+    function Cellar(fileCollection, config, storage) {
         this.fileCollection = fileCollection;
         this.config = config;
-        this.client = client;
+        this.storage = storage;
     }
     Cellar.prototype.singleFile = function (name) {
         if (name === void 0) { name = 'file'; }
@@ -43,7 +43,7 @@ var Cellar = (function () {
         }, fields);
         return this.fileCollection.create(entity)
             .then(function (record) {
-            return _this.client.send(file.path, filename)
+            return _this.storage.store(file.path, filename)
                 .then(function () { return record; })
                 .catch(function (error) { return _this.fileCollection.remove(record)
                 .then(function () {

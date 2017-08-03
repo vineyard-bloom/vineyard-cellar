@@ -1,29 +1,28 @@
 const s3 = require('s3')
 
-export interface CellarClient {
+export interface S3CellarStorageConfig {
+  defaultBucket: string
   client
-  config
-  send: Promise<any>
 }
 
-export class S3CellarClient {
-  client
-  private config
+export class S3CellarStorage {
+  private client
+  private config:S3CellarStorageConfig
 
-  constructor(config) {
-    this.config = config.s3
-    this.client = s3.createClient(this.config)
+  constructor(config:S3CellarStorageConfig) {
+    this.config = config
+    this.client = s3.createClient(this.config.client)
   }
 
-  send(localPath: string, remotePath: string) {
+  store(localPath: string, remotePath: string) {
     const params = {
       localFile: localPath,
-
       s3Params: {
-        Bucket: this.config.bucket,
+        Bucket: this.config.defaultBucket,
         Key: remotePath,
       },
     }
+
     return new Promise((resolve, reject) => {
       const uploader = this.client.uploadFile(params)
       uploader.on('error', function (error) {
@@ -36,7 +35,3 @@ export class S3CellarClient {
   }
 
 }
-
-/**
- * Created by patrickmedaugh on 8/1/17.
- */

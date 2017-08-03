@@ -4,5 +4,5 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./cellar"));
-__export(require("./cellar-client"));
+__export(require("./s3-cellar-storage"));
 //# sourceMappingURL=index.js.map

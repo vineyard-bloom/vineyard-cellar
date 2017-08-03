@@ -1,2 +1,3 @@
 export * from './cellar';
-export * from './cellar-client';
+export * from './s3-cellar-storage';
+export * from './types';

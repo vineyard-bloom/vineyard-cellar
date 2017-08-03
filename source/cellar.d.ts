@@ -1,6 +1,6 @@
 import { Request } from 'vineyard-lawn';
 import { Collection } from "vineyard-ground";
-import { CellarClient } from "./cellar-client";
+import { CellarStorage } from "./types";
 export interface File {
     filename: string;
     path: string;
@@ -12,16 +12,15 @@ export interface PathConfig {
 }
 export interface CellarConfig {
     paths: PathConfig;
-    useMock: boolean;
 }
 export declare class Cellar {
     private fileCollection;
-    private client;
+    private storage;
     private config;
-    constructor(fileCollection: Collection<File>, config: CellarConfig, client: CellarClient);
+    constructor(fileCollection: Collection<File>, config: CellarConfig, storage: CellarStorage);
     singleFile(name?: string): any;
     getConfig(): CellarConfig;
     createFile(name: string, fields: any, file: any): any;
     private uploadFile(name, fields, file);
-    upload(name: string, fields: any, request: Request): Promise<any>;
+    upload(name: string, fields: any, request: Request): Promise<never>;
 }

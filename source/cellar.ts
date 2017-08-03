@@ -1,6 +1,6 @@
 import {Request, BadRequest} from 'vineyard-lawn'
 import {Collection} from "vineyard-ground"
-import {CellarClient} from "./cellar-client";
+import {CellarStorage} from "./types";
 const multer = require('multer')
 
 export interface File {
@@ -20,22 +20,19 @@ export interface PathConfig {
   temp: string
 }
 
-
-
 export interface CellarConfig {
   paths: PathConfig
-  useMock: boolean
 }
 
 export class Cellar {
   private fileCollection: Collection<File>
-  private client
+  private storage:CellarStorage
   private config: CellarConfig
 
-  constructor(fileCollection: Collection<File>, config: CellarConfig, client: CellarClient) {
+  constructor(fileCollection: Collection<File>, config: CellarConfig, storage: CellarStorage) {
     this.fileCollection = fileCollection
     this.config = config
-    this.client = client
+    this.storage = storage
   }
 
   singleFile(name = 'file') {
@@ -73,7 +70,7 @@ export class Cellar {
 
     return this.fileCollection.create(entity)
       .then(record => {
-        return this.client.send(file.path, filename)
+        return this.storage.store(file.path, filename)
           .then(() => record)
           .catch(error => this.fileCollection.remove(record)
             .then(() => {
