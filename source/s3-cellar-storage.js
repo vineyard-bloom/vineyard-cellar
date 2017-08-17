@@ -25,6 +25,25 @@ var S3CellarStorage = (function () {
             });
         });
     };
+    S3CellarStorage.prototype.retrieve = function (localPath, remotePath) {
+        var _this = this;
+        var params = {
+            localFile: localPath,
+            s3Params: {
+                Bucket: this.config.defaultBucket,
+                Key: remotePath,
+            },
+        };
+        return new Promise(function (resolve, reject) {
+            var downloader = _this.client.downloadFile(params);
+            downloader.on('error', function (error) {
+                reject(error);
+            });
+            downloader.on('end', function () {
+                resolve(localPath);
+            });
+        });
+    };
     return S3CellarStorage;
 }());
 exports.S3CellarStorage = S3CellarStorage;

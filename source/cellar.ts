@@ -56,7 +56,7 @@ export class Cellar {
       }, fields)
   }
 
-  private uploadFile(name: string, fields, file) {
+  private uploadFile(name: string, user, file) {
     const path = require('path')
     const ext = path.extname(file.originalname) || ''
     const filename = name + ext
@@ -66,26 +66,54 @@ export class Cellar {
       path: file.path,
       extension: ext.substring(1),
       size: file.size,
-    }, fields)
+    }, {user: user.id})
 
     return this.fileCollection.create(entity)
       .then(record => {
-        return this.storage.store(file.path, filename)
+        return this.storage.store(file.path, filename, user)
           .then(() => record)
           .catch(error => this.fileCollection.remove(record)
             .then(() => {
               throw error
             }))
-      })     
+      })
   }
 
-  upload(name: string, fields, request: Request) {
+  upload(name: string, user, request: Request) {
     const req = request.original
     if (!req.file) {
       console.error('upload-req-error', req)
       throw new Error("Upload request is missing file.")
     }
-    
-    return this.uploadFile(name, fields, req.file)
+
+    return this.uploadFile(name, user, req.file)
+  }
+
+  private downloadFile(name: string, user, file) {
+    const path = require('path')
+    const ext = path.extname(file.originalname) || ''
+    const filename = name + ext
+
+    const entity = Object.assign({
+      filename: filename,
+      path: file.path,
+      extension: ext.substring(1),
+      size: file.size,
+    }, {user: user.id})
+
+
+    return this.storage.retrieve(file.path, filename)
+      .then(file => file)
+      .catch(error => error)
+  }
+
+  download(name: string, user, request: Request) {
+    const req = request.original
+    if (!req.file) {
+      console.error('download-req-error', req)
+      throw new Error('Download request is missing file.')
+    }
+
+    return this.downloadFile(name, user, req.file)
   }
 }

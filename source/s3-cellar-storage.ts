@@ -34,4 +34,24 @@ export class S3CellarStorage {
     })
   }
 
+  retrieve(localPath:string, remotePath:string) {
+    const params = {
+      localFile: localPath,
+      s3Params: {
+        Bucket: this.config.defaultBucket,
+        Key: remotePath,
+      },
+    }
+
+    return new Promise((resolve, reject) => {
+      const downloader = this.client.downloadFile(params)
+      downloader.on('error', function (error) {
+        reject(error)
+      })
+      downloader.on('end', function () {
+        resolve(localPath)
+      })
+    })
+  }
+
 }

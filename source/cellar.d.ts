@@ -21,6 +21,8 @@ export declare class Cellar {
     singleFile(name?: string): any;
     getConfig(): CellarConfig;
     createFile(name: string, fields: any, file: any): any;
-    private uploadFile(name, fields, file);
-    upload(name: string, fields: any, request: Request): Promise<never>;
+    private uploadFile(name, user, file);
+    upload(name: string, user: any, request: Request): Promise<any>;
+    private downloadFile(name, user, file);
+    download(name: string, user: any, request: Request): Promise<any>;
 }

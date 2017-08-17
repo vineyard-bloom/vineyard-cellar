@@ -30,7 +30,7 @@ var Cellar = (function () {
             size: file.size,
         }, fields);
     };
-    Cellar.prototype.uploadFile = function (name, fields, file) {
+    Cellar.prototype.uploadFile = function (name, user, file) {
         var _this = this;
         var path = require('path');
         var ext = path.extname(file.originalname) || '';
@@ -40,10 +40,10 @@ var Cellar = (function () {
             path: file.path,
             extension: ext.substring(1),
             size: file.size,
-        }, fields);
+        }, { user: user.id });
         return this.fileCollection.create(entity)
             .then(function (record) {
-            return _this.storage.store(file.path, filename)
+            return _this.storage.store(file.path, filename, user)
                 .then(function () { return record; })
                 .catch(function (error) { return _this.fileCollection.remove(record)
                 .then(function () {
@@ -51,13 +51,35 @@ var Cellar = (function () {
             }); });
         });
     };
-    Cellar.prototype.upload = function (name, fields, request) {
+    Cellar.prototype.upload = function (name, user, request) {
         var req = request.original;
         if (!req.file) {
             console.error('upload-req-error', req);
             throw new Error("Upload request is missing file.");
         }
-        return this.uploadFile(name, fields, req.file);
+        return this.uploadFile(name, user, req.file);
+    };
+    Cellar.prototype.downloadFile = function (name, user, file) {
+        var path = require('path');
+        var ext = path.extname(file.originalname) || '';
+        var filename = name + ext;
+        var entity = Object.assign({
+            filename: filename,
+            path: file.path,
+            extension: ext.substring(1),
+            size: file.size,
+        }, { user: user.id });
+        return this.storage.retrieve(file.path, filename)
+            .then(function (file) { return file; })
+            .catch(function (error) { return error; });
+    };
+    Cellar.prototype.download = function (name, user, request) {
+        var req = request.original;
+        if (!req.file) {
+            console.error('download-req-error', req);
+            throw new Error('Download request is missing file.');
+        }
+        return this.downloadFile(name, user, req.file);
     };
     return Cellar;
 }());

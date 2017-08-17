@@ -7,4 +7,5 @@ export declare class S3CellarStorage {
     private config;
     constructor(config: S3CellarStorageConfig);
     store(localPath: string, remotePath: string): Promise<{}>;
+    retrieve(localPath: string, remotePath: string): Promise<{}>;
 }
