@@ -23,6 +23,6 @@ export declare class Cellar {
     createFile(name: string, fields: any, file: any): any;
     private uploadFile(name, user, file);
     upload(name: string, user: any, request: Request): Promise<any>;
-    private downloadFile(name, user, file);
-    download(name: string, user: any, request: Request): Promise<any>;
+    private downloadFile(file);
+    download(file: any): Promise<any>;
 }

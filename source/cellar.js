@@ -59,27 +59,17 @@ var Cellar = (function () {
         }
         return this.uploadFile(name, user, req.file);
     };
-    Cellar.prototype.downloadFile = function (name, user, file) {
-        var path = require('path');
-        var ext = path.extname(file.originalname) || '';
-        var filename = name + ext;
-        var entity = Object.assign({
-            filename: filename,
-            path: file.path,
-            extension: ext.substring(1),
-            size: file.size,
-        }, { user: user.id });
-        return this.storage.retrieve(file.path, filename)
+    Cellar.prototype.downloadFile = function (file) {
+        return this.storage.retrieve(file.path, file.filename)
             .then(function (file) { return file; })
             .catch(function (error) { return error; });
     };
-    Cellar.prototype.download = function (name, user, request) {
-        var req = request.original;
-        if (!req.file) {
+    Cellar.prototype.download = function (file) {
+        if (!file.path || !file.filename) {
             console.error('download-req-error', req);
             throw new Error('Download request is missing file.');
         }
-        return this.downloadFile(name, user, req.file);
+        return this.downloadFile(file);
     };
     return Cellar;
 }());
